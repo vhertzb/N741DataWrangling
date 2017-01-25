@@ -396,7 +396,8 @@ names(df)</code></pre>
 <div id="read-in-data" class="section level3">
 <h3>Read-in data</h3>
 <p><strong>NOTE:</strong> Download the 2 files from the UCI Data Repository for the Contraceptive Method Choice and put them in the directory where you have this RMD <code>rmarkdown</code> file.</p>
-<pre class="r"><code>library(tidyverse)</code></pre>
+<pre class="r"><code># load the tidyverse package(s)
+library(tidyverse)</code></pre>
 <pre><code>## Loading tidyverse: ggplot2
 ## Loading tidyverse: tibble
 ## Loading tidyverse: tidyr
@@ -406,7 +407,11 @@ names(df)</code></pre>
 <pre><code>## Conflicts with tidy packages ----------------------------------------------</code></pre>
 <pre><code>## filter(): dplyr, stats
 ## lag():    dplyr, stats</code></pre>
-<pre class="r"><code>cmc &lt;- read_csv(&quot;cmc.data&quot;, col_names=FALSE)</code></pre>
+<pre class="r"><code># read in the comma delimited (CSV) formatted dataset
+# **NOTE**: This dataset does NOT have the column
+# names as the 1st row of the file. We will assign the 
+# column names below.
+cmc &lt;- read_csv(&quot;cmc.data&quot;, col_names=FALSE)</code></pre>
 <pre><code>## Parsed with column specification:
 ## cols(
 ##   X1 = col_integer(),
@@ -423,32 +428,217 @@ names(df)</code></pre>
 </div>
 <div id="apply-the-codebook---variable-names-and-coding-used" class="section level3">
 <h3>Apply the codebook - variable names and coding used</h3>
-<p><em>PLACEHOLDER</em> - code to be added for labeling the data and adding the coding levels and descriptions (i.e. creating the factors).</p>
+<p>Apply variable names to the 10 columns of data in <code>cmc</code>.</p>
+<pre class="r"><code># the variable names before we change them
+# Notice that the columns names are very generic
+# X1, X2, ..., X10
+names(cmc)</code></pre>
+<pre><code>##  [1] &quot;X1&quot;  &quot;X2&quot;  &quot;X3&quot;  &quot;X4&quot;  &quot;X5&quot;  &quot;X6&quot;  &quot;X7&quot;  &quot;X8&quot;  &quot;X9&quot;  &quot;X10&quot;</code></pre>
+<pre class="r"><code># assign new variables names to the 10 columns
+names(cmc) &lt;- c(&quot;WifeAge&quot;, &quot;WifeEd&quot;, &quot;HusbEd&quot;, &quot;NumChild&quot;,
+                &quot;WifeRel&quot;, &quot;WifeWork&quot;, &quot;HusbOcc&quot;, &quot;SOLindex&quot;, 
+                &quot;Media&quot;, &quot;Contraceptive&quot;)
+
+# see the updated column/variable names
+names(cmc)</code></pre>
+<pre><code>##  [1] &quot;WifeAge&quot;       &quot;WifeEd&quot;        &quot;HusbEd&quot;        &quot;NumChild&quot;     
+##  [5] &quot;WifeRel&quot;       &quot;WifeWork&quot;      &quot;HusbOcc&quot;       &quot;SOLindex&quot;     
+##  [9] &quot;Media&quot;         &quot;Contraceptive&quot;</code></pre>
+<p>The next code chunk is to add the labels for “factor” levels for some of the variables (i.e. we are creating factors).</p>
+<p><strong>WARNING</strong>: Notice I’m overwriting the variables and changing them from integers to factors which have different properties as you’ll see below. If you want to keep the original integer variables, you could simply give the new facotr variable a new name. For example you could write</p>
+<pre><code>cmc$WifeEd.f &lt;- factor(cmc$WifeEd,
+                       levels = c(1,2,3,4),
+                       labels = c(&quot;low&quot;,&quot;med low&quot;,&quot;med</code></pre>
+<p>and this would append a new column onto the <code>cmc</code> dataset that is the “factor” type version of Wife’s Education. For now, use the code below to update all of the variables.</p>
+<pre class="r"><code># notice that Wife Education is currently of &quot;Integer&quot; class type
+# see what you get from the summary() function
+class(cmc$WifeEd)</code></pre>
+<pre><code>## [1] &quot;integer&quot;</code></pre>
+<pre class="r"><code>summary(cmc$WifeEd)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   1.000   2.000   3.000   2.959   4.000   4.000</code></pre>
+<pre class="r"><code># update Wife Education as a factor, assign the 
+# levels and the labels for each level
+cmc$WifeEd &lt;- factor(cmc$WifeEd,
+                     levels = c(1,2,3,4),
+                     labels = c(&quot;low&quot;,&quot;med low&quot;,&quot;med high&quot;,&quot;high&quot;))
+
+# repeat the above commands to see what changes
+class(cmc$WifeEd)</code></pre>
+<pre><code>## [1] &quot;factor&quot;</code></pre>
+<pre class="r"><code>summary(cmc$WifeEd)</code></pre>
+<pre><code>##      low  med low med high     high 
+##      152      334      410      577</code></pre>
+<pre class="r"><code># do the remaining variables
+cmc$HusbEd &lt;- factor(cmc$HusbEd,
+                     levels = c(1,2,3,4),
+                     labels = c(&quot;low&quot;,&quot;med low&quot;,&quot;med high&quot;,&quot;high&quot;))
+
+cmc$WifeRel &lt;- factor(cmc$WifeRel,
+                      levels = c(0,1),
+                      labels = c(&quot;Non-Islam&quot;,&quot;Islam&quot;))
+
+# Note: The documentation does state that
+# 0=yes and 1=no which seems incorrect...
+cmc$WifeWork &lt;- factor(cmc$WifeWork,
+                       levels = c(0,1),
+                       labels = c(&quot;Yes&quot;,&quot;No&quot;))
+
+cmc$HusbOcc &lt;- factor(cmc$HusbOcc,
+                      levels = c(1,2,3,4),
+                      labels = c(&quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;))
+
+cmc$SOLindex &lt;- factor(cmc$SOLindex,
+                       levels = c(1,2,3,4),
+                       labels = c(&quot;low&quot;,&quot;med low&quot;,&quot;med high&quot;,&quot;high&quot;))
+
+cmc$Media &lt;- factor(cmc$Media,
+                    levels = c(0,1),
+                    labels = c(&quot;Good&quot;,&quot;Not Good&quot;))
+
+cmc$Contraceptive &lt;- factor(cmc$Contraceptive,
+                            levels = c(1,2,3),
+                            labels = c(&quot;No-use&quot;,&quot;Long-term&quot;,&quot;Short-term&quot;))</code></pre>
+</div>
+<div id="look-at-a-subset-of-the-data" class="section level3">
+<h3>Look at a subset of the data</h3>
+<pre class="r"><code>head(cmc)</code></pre>
+<pre><code>## # A tibble: 6 × 10
+##   WifeAge   WifeEd   HusbEd NumChild WifeRel WifeWork HusbOcc SOLindex
+##     &lt;int&gt;   &lt;fctr&gt;   &lt;fctr&gt;    &lt;int&gt;  &lt;fctr&gt;   &lt;fctr&gt;  &lt;fctr&gt;   &lt;fctr&gt;
+## 1      24  med low med high        3   Islam       No       2 med high
+## 2      45      low med high       10   Islam       No       3     high
+## 3      43  med low med high        7   Islam       No       3     high
+## 4      42 med high  med low        9   Islam       No       3 med high
+## 5      36 med high med high        8   Islam       No       3  med low
+## 6      19     high     high        0   Islam       No       3 med high
+## # ... with 2 more variables: Media &lt;fctr&gt;, Contraceptive &lt;fctr&gt;</code></pre>
+</div>
+<div id="print-this-subset-using-knitrkable" class="section level3">
+<h3>Print this subset using <code>knitr::kable()</code></h3>
+<pre class="r"><code>knitr::kable(head(cmc))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">WifeAge</th>
+<th align="left">WifeEd</th>
+<th align="left">HusbEd</th>
+<th align="right">NumChild</th>
+<th align="left">WifeRel</th>
+<th align="left">WifeWork</th>
+<th align="left">HusbOcc</th>
+<th align="left">SOLindex</th>
+<th align="left">Media</th>
+<th align="left">Contraceptive</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">24</td>
+<td align="left">med low</td>
+<td align="left">med high</td>
+<td align="right">3</td>
+<td align="left">Islam</td>
+<td align="left">No</td>
+<td align="left">2</td>
+<td align="left">med high</td>
+<td align="left">Good</td>
+<td align="left">No-use</td>
+</tr>
+<tr class="even">
+<td align="right">45</td>
+<td align="left">low</td>
+<td align="left">med high</td>
+<td align="right">10</td>
+<td align="left">Islam</td>
+<td align="left">No</td>
+<td align="left">3</td>
+<td align="left">high</td>
+<td align="left">Good</td>
+<td align="left">No-use</td>
+</tr>
+<tr class="odd">
+<td align="right">43</td>
+<td align="left">med low</td>
+<td align="left">med high</td>
+<td align="right">7</td>
+<td align="left">Islam</td>
+<td align="left">No</td>
+<td align="left">3</td>
+<td align="left">high</td>
+<td align="left">Good</td>
+<td align="left">No-use</td>
+</tr>
+<tr class="even">
+<td align="right">42</td>
+<td align="left">med high</td>
+<td align="left">med low</td>
+<td align="right">9</td>
+<td align="left">Islam</td>
+<td align="left">No</td>
+<td align="left">3</td>
+<td align="left">med high</td>
+<td align="left">Good</td>
+<td align="left">No-use</td>
+</tr>
+<tr class="odd">
+<td align="right">36</td>
+<td align="left">med high</td>
+<td align="left">med high</td>
+<td align="right">8</td>
+<td align="left">Islam</td>
+<td align="left">No</td>
+<td align="left">3</td>
+<td align="left">med low</td>
+<td align="left">Good</td>
+<td align="left">No-use</td>
+</tr>
+<tr class="even">
+<td align="right">19</td>
+<td align="left">high</td>
+<td align="left">high</td>
+<td align="right">0</td>
+<td align="left">Islam</td>
+<td align="left">No</td>
+<td align="left">3</td>
+<td align="left">med high</td>
+<td align="left">Good</td>
+<td align="left">No-use</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="summarize-the-dataset" class="section level3">
 <h3>Summarize the dataset</h3>
+<p><strong>NOTICE</strong> that Wife’s Age and Number of Children are now the only “numeric” “integer” variables - these are the only ones for which we get summary statistics. All the remaining variables are “factors” so we only get the frequencies for each category.</p>
 <pre class="r"><code>summary(cmc)</code></pre>
-<pre><code>##        X1              X2              X3             X4        
-##  Min.   :16.00   Min.   :1.000   Min.   :1.00   Min.   : 0.000  
-##  1st Qu.:26.00   1st Qu.:2.000   1st Qu.:3.00   1st Qu.: 1.000  
-##  Median :32.00   Median :3.000   Median :4.00   Median : 3.000  
-##  Mean   :32.54   Mean   :2.959   Mean   :3.43   Mean   : 3.261  
-##  3rd Qu.:39.00   3rd Qu.:4.000   3rd Qu.:4.00   3rd Qu.: 4.000  
-##  Max.   :49.00   Max.   :4.000   Max.   :4.00   Max.   :16.000  
-##        X5               X6               X7              X8       
-##  Min.   :0.0000   Min.   :0.0000   Min.   :1.000   Min.   :1.000  
-##  1st Qu.:1.0000   1st Qu.:0.0000   1st Qu.:1.000   1st Qu.:3.000  
-##  Median :1.0000   Median :1.0000   Median :2.000   Median :3.000  
-##  Mean   :0.8506   Mean   :0.7495   Mean   :2.138   Mean   :3.134  
-##  3rd Qu.:1.0000   3rd Qu.:1.0000   3rd Qu.:3.000   3rd Qu.:4.000  
-##  Max.   :1.0000   Max.   :1.0000   Max.   :4.000   Max.   :4.000  
-##        X9             X10      
-##  Min.   :0.000   Min.   :1.00  
-##  1st Qu.:0.000   1st Qu.:1.00  
-##  Median :0.000   Median :2.00  
-##  Mean   :0.074   Mean   :1.92  
-##  3rd Qu.:0.000   3rd Qu.:3.00  
-##  Max.   :1.000   Max.   :3.00</code></pre>
+<pre><code>##     WifeAge           WifeEd         HusbEd       NumChild     
+##  Min.   :16.00   low     :152   low     : 44   Min.   : 0.000  
+##  1st Qu.:26.00   med low :334   med low :178   1st Qu.: 1.000  
+##  Median :32.00   med high:410   med high:352   Median : 3.000  
+##  Mean   :32.54   high    :577   high    :899   Mean   : 3.261  
+##  3rd Qu.:39.00                                 3rd Qu.: 4.000  
+##  Max.   :49.00                                 Max.   :16.000  
+##       WifeRel     WifeWork   HusbOcc     SOLindex        Media     
+##  Non-Islam: 220   Yes: 369   1:436   low     :129   Good    :1364  
+##  Islam    :1253   No :1104   2:425   med low :229   Not Good: 109  
+##                              3:585   med high:431                  
+##                              4: 27   high    :684                  
+##                                                                    
+##                                                                    
+##     Contraceptive
+##  No-use    :629  
+##  Long-term :333  
+##  Short-term:511  
+##                  
+##                  
+## </code></pre>
+</div>
+<div id="computing-stats-on-factors" class="section level3">
+<h3>Computing stats on factors</h3>
+<p>Suppose you wanted to know the mean education level of the Huband’s in this dataset. We can use the <code>as.numeric()</code> function to convert the variable and then run a <code>mean()</code> on it. We’ll do more on facotrs later this semester.</p>
+<pre class="r"><code>mean(as.numeric(cmc$HusbEd))</code></pre>
+<pre><code>## [1] 3.429735</code></pre>
 </div>
 </div>
 <div id="tidy-data" class="section level2">

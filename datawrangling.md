@@ -355,6 +355,7 @@ The following dataset comes from the [UCI Data Repository](http://archive.ics.uc
 **NOTE:** Download the 2 files from the UCI Data Repository for the Contraceptive Method Choice and put them in the directory where you have this RMD `rmarkdown` file.
 
 ``` r
+# load the tidyverse package(s)
 library(tidyverse)
 ```
 
@@ -371,6 +372,10 @@ library(tidyverse)
     ## lag():    dplyr, stats
 
 ``` r
+# read in the comma delimited (CSV) formatted dataset
+# **NOTE**: This dataset does NOT have the column
+# names as the 1st row of the file. We will assign the 
+# column names below.
 cmc <- read_csv("cmc.data", col_names=FALSE)
 ```
 
@@ -390,35 +395,180 @@ cmc <- read_csv("cmc.data", col_names=FALSE)
 
 ### Apply the codebook - variable names and coding used
 
-*PLACEHOLDER* - code to be added for labeling the data and adding the coding levels and descriptions (i.e. creating the factors).
+Apply variable names to the 10 columns of data in `cmc`.
+
+``` r
+# the variable names before we change them
+# Notice that the columns names are very generic
+# X1, X2, ..., X10
+names(cmc)
+```
+
+    ##  [1] "X1"  "X2"  "X3"  "X4"  "X5"  "X6"  "X7"  "X8"  "X9"  "X10"
+
+``` r
+# assign new variables names to the 10 columns
+names(cmc) <- c("WifeAge", "WifeEd", "HusbEd", "NumChild",
+                "WifeRel", "WifeWork", "HusbOcc", "SOLindex", 
+                "Media", "Contraceptive")
+
+# see the updated column/variable names
+names(cmc)
+```
+
+    ##  [1] "WifeAge"       "WifeEd"        "HusbEd"        "NumChild"     
+    ##  [5] "WifeRel"       "WifeWork"      "HusbOcc"       "SOLindex"     
+    ##  [9] "Media"         "Contraceptive"
+
+The next code chunk is to add the labels for "factor" levels for some of the variables (i.e. we are creating factors).
+
+**WARNING**: Notice I'm overwriting the variables and changing them from integers to factors which have different properties as you'll see below. If you want to keep the original integer variables, you could simply give the new facotr variable a new name. For example you could write
+
+    cmc$WifeEd.f <- factor(cmc$WifeEd,
+                           levels = c(1,2,3,4),
+                           labels = c("low","med low","med
+
+and this would append a new column onto the `cmc` dataset that is the "factor" type version of Wife's Education. For now, use the code below to update all of the variables.
+
+``` r
+# notice that Wife Education is currently of "Integer" class type
+# see what you get from the summary() function
+class(cmc$WifeEd)
+```
+
+    ## [1] "integer"
+
+``` r
+summary(cmc$WifeEd)
+```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##   1.000   2.000   3.000   2.959   4.000   4.000
+
+``` r
+# update Wife Education as a factor, assign the 
+# levels and the labels for each level
+cmc$WifeEd <- factor(cmc$WifeEd,
+                     levels = c(1,2,3,4),
+                     labels = c("low","med low","med high","high"))
+
+# repeat the above commands to see what changes
+class(cmc$WifeEd)
+```
+
+    ## [1] "factor"
+
+``` r
+summary(cmc$WifeEd)
+```
+
+    ##      low  med low med high     high 
+    ##      152      334      410      577
+
+``` r
+# do the remaining variables
+cmc$HusbEd <- factor(cmc$HusbEd,
+                     levels = c(1,2,3,4),
+                     labels = c("low","med low","med high","high"))
+
+cmc$WifeRel <- factor(cmc$WifeRel,
+                      levels = c(0,1),
+                      labels = c("Non-Islam","Islam"))
+
+# Note: The documentation does state that
+# 0=yes and 1=no which seems incorrect...
+cmc$WifeWork <- factor(cmc$WifeWork,
+                       levels = c(0,1),
+                       labels = c("Yes","No"))
+
+cmc$HusbOcc <- factor(cmc$HusbOcc,
+                      levels = c(1,2,3,4),
+                      labels = c("1","2","3","4"))
+
+cmc$SOLindex <- factor(cmc$SOLindex,
+                       levels = c(1,2,3,4),
+                       labels = c("low","med low","med high","high"))
+
+cmc$Media <- factor(cmc$Media,
+                    levels = c(0,1),
+                    labels = c("Good","Not Good"))
+
+cmc$Contraceptive <- factor(cmc$Contraceptive,
+                            levels = c(1,2,3),
+                            labels = c("No-use","Long-term","Short-term"))
+```
+
+### Look at a subset of the data
+
+``` r
+head(cmc)
+```
+
+    ## # A tibble: 6 × 10
+    ##   WifeAge   WifeEd   HusbEd NumChild WifeRel WifeWork HusbOcc SOLindex
+    ##     <int>   <fctr>   <fctr>    <int>  <fctr>   <fctr>  <fctr>   <fctr>
+    ## 1      24  med low med high        3   Islam       No       2 med high
+    ## 2      45      low med high       10   Islam       No       3     high
+    ## 3      43  med low med high        7   Islam       No       3     high
+    ## 4      42 med high  med low        9   Islam       No       3 med high
+    ## 5      36 med high med high        8   Islam       No       3  med low
+    ## 6      19     high     high        0   Islam       No       3 med high
+    ## # ... with 2 more variables: Media <fctr>, Contraceptive <fctr>
+
+### Print this subset using `knitr::kable()`
+
+``` r
+knitr::kable(head(cmc))
+```
+
+|  WifeAge| WifeEd   | HusbEd   |  NumChild| WifeRel | WifeWork | HusbOcc | SOLindex | Media | Contraceptive |
+|--------:|:---------|:---------|---------:|:--------|:---------|:--------|:---------|:------|:--------------|
+|       24| med low  | med high |         3| Islam   | No       | 2       | med high | Good  | No-use        |
+|       45| low      | med high |        10| Islam   | No       | 3       | high     | Good  | No-use        |
+|       43| med low  | med high |         7| Islam   | No       | 3       | high     | Good  | No-use        |
+|       42| med high | med low  |         9| Islam   | No       | 3       | med high | Good  | No-use        |
+|       36| med high | med high |         8| Islam   | No       | 3       | med low  | Good  | No-use        |
+|       19| high     | high     |         0| Islam   | No       | 3       | med high | Good  | No-use        |
 
 ### Summarize the dataset
+
+**NOTICE** that Wife's Age and Number of Children are now the only "numeric" "integer" variables - these are the only ones for which we get summary statistics. All the remaining variables are "factors" so we only get the frequencies for each category.
 
 ``` r
 summary(cmc)
 ```
 
-    ##        X1              X2              X3             X4        
-    ##  Min.   :16.00   Min.   :1.000   Min.   :1.00   Min.   : 0.000  
-    ##  1st Qu.:26.00   1st Qu.:2.000   1st Qu.:3.00   1st Qu.: 1.000  
-    ##  Median :32.00   Median :3.000   Median :4.00   Median : 3.000  
-    ##  Mean   :32.54   Mean   :2.959   Mean   :3.43   Mean   : 3.261  
-    ##  3rd Qu.:39.00   3rd Qu.:4.000   3rd Qu.:4.00   3rd Qu.: 4.000  
-    ##  Max.   :49.00   Max.   :4.000   Max.   :4.00   Max.   :16.000  
-    ##        X5               X6               X7              X8       
-    ##  Min.   :0.0000   Min.   :0.0000   Min.   :1.000   Min.   :1.000  
-    ##  1st Qu.:1.0000   1st Qu.:0.0000   1st Qu.:1.000   1st Qu.:3.000  
-    ##  Median :1.0000   Median :1.0000   Median :2.000   Median :3.000  
-    ##  Mean   :0.8506   Mean   :0.7495   Mean   :2.138   Mean   :3.134  
-    ##  3rd Qu.:1.0000   3rd Qu.:1.0000   3rd Qu.:3.000   3rd Qu.:4.000  
-    ##  Max.   :1.0000   Max.   :1.0000   Max.   :4.000   Max.   :4.000  
-    ##        X9             X10      
-    ##  Min.   :0.000   Min.   :1.00  
-    ##  1st Qu.:0.000   1st Qu.:1.00  
-    ##  Median :0.000   Median :2.00  
-    ##  Mean   :0.074   Mean   :1.92  
-    ##  3rd Qu.:0.000   3rd Qu.:3.00  
-    ##  Max.   :1.000   Max.   :3.00
+    ##     WifeAge           WifeEd         HusbEd       NumChild     
+    ##  Min.   :16.00   low     :152   low     : 44   Min.   : 0.000  
+    ##  1st Qu.:26.00   med low :334   med low :178   1st Qu.: 1.000  
+    ##  Median :32.00   med high:410   med high:352   Median : 3.000  
+    ##  Mean   :32.54   high    :577   high    :899   Mean   : 3.261  
+    ##  3rd Qu.:39.00                                 3rd Qu.: 4.000  
+    ##  Max.   :49.00                                 Max.   :16.000  
+    ##       WifeRel     WifeWork   HusbOcc     SOLindex        Media     
+    ##  Non-Islam: 220   Yes: 369   1:436   low     :129   Good    :1364  
+    ##  Islam    :1253   No :1104   2:425   med low :229   Not Good: 109  
+    ##                              3:585   med high:431                  
+    ##                              4: 27   high    :684                  
+    ##                                                                    
+    ##                                                                    
+    ##     Contraceptive
+    ##  No-use    :629  
+    ##  Long-term :333  
+    ##  Short-term:511  
+    ##                  
+    ##                  
+    ## 
+
+### Computing stats on factors
+
+Suppose you wanted to know the mean education level of the Huband's in this dataset. We can use the `as.numeric()` function to convert the variable and then run a `mean()` on it. We'll do more on facotrs later this semester.
+
+``` r
+mean(as.numeric(cmc$HusbEd))
+```
+
+    ## [1] 3.429735
 
 TIDY Data
 ---------

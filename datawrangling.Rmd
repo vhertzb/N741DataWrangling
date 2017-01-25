@@ -3,10 +3,10 @@ title: 'Data Wrangling: January 25, 2017'
 author: "Melinda Higgins"
 date: "January 25, 2017"
 output:
-  word_document: default
   html_document: default
-  pdf_document: default
   github_document: default
+  pdf_document: default
+  word_document: default
 ---
 
 ## Data Wrangling: January 25, 2017
@@ -238,22 +238,122 @@ The following dataset comes from the [UCI Data Repository](http://archive.ics.uc
 **NOTE:** Download the 2 files from the UCI Data Repository for the Contraceptive Method Choice and put them in the directory where you have this RMD `rmarkdown` file.
 
 ```{r}
+# load the tidyverse package(s)
 library(tidyverse)
+
+# read in the comma delimited (CSV) formatted dataset
+# **NOTE**: This dataset does NOT have the column
+# names as the 1st row of the file. We will assign the 
+# column names below.
 cmc <- read_csv("cmc.data", col_names=FALSE)
 ```
 
 ### Apply the codebook - variable names and coding used
 
-_PLACEHOLDER_ - code to be added for labeling the data and adding the coding levels and descriptions (i.e. creating the factors).
+Apply variable names to the 10 columns of data in `cmc`.
 
 ```{r}
+# the variable names before we change them
+# Notice that the columns names are very generic
+# X1, X2, ..., X10
+names(cmc)
 
+# assign new variables names to the 10 columns
+names(cmc) <- c("WifeAge", "WifeEd", "HusbEd", "NumChild",
+                "WifeRel", "WifeWork", "HusbOcc", "SOLindex", 
+                "Media", "Contraceptive")
+
+# see the updated column/variable names
+names(cmc)
+```
+
+The next code chunk is to add the labels for "factor" levels for some of the variables (i.e. we are creating factors).
+
+**WARNING**: Notice I'm overwriting the variables and changing them from integers to factors which have different properties as you'll see below. If you want to keep the original integer variables, you could simply give the new facotr variable a new name. For example you could write 
+
+```
+cmc$WifeEd.f <- factor(cmc$WifeEd,
+                       levels = c(1,2,3,4),
+                       labels = c("low","med low","med
+```
+
+and this would append a new column onto the `cmc` dataset that is the "factor" type version of Wife's Education. For now, use the code below to update all of the variables.
+
+```{r}
+# notice that Wife Education is currently of "Integer" class type
+# see what you get from the summary() function
+class(cmc$WifeEd)
+summary(cmc$WifeEd)
+
+# update Wife Education as a factor, assign the 
+# levels and the labels for each level
+cmc$WifeEd <- factor(cmc$WifeEd,
+                     levels = c(1,2,3,4),
+                     labels = c("low","med low","med high","high"))
+
+# repeat the above commands to see what changes
+class(cmc$WifeEd)
+summary(cmc$WifeEd)
+
+# do the remaining variables
+cmc$HusbEd <- factor(cmc$HusbEd,
+                     levels = c(1,2,3,4),
+                     labels = c("low","med low","med high","high"))
+
+cmc$WifeRel <- factor(cmc$WifeRel,
+                      levels = c(0,1),
+                      labels = c("Non-Islam","Islam"))
+
+# Note: The documentation does state that
+# 0=yes and 1=no which seems incorrect...
+cmc$WifeWork <- factor(cmc$WifeWork,
+                       levels = c(0,1),
+                       labels = c("Yes","No"))
+
+cmc$HusbOcc <- factor(cmc$HusbOcc,
+                      levels = c(1,2,3,4),
+                      labels = c("1","2","3","4"))
+
+cmc$SOLindex <- factor(cmc$SOLindex,
+                       levels = c(1,2,3,4),
+                       labels = c("low","med low","med high","high"))
+
+cmc$Media <- factor(cmc$Media,
+                    levels = c(0,1),
+                    labels = c("Good","Not Good"))
+
+cmc$Contraceptive <- factor(cmc$Contraceptive,
+                            levels = c(1,2,3),
+                            labels = c("No-use","Long-term","Short-term"))
+
+```
+
+### Look at a subset of the data
+
+```{r}
+head(cmc)
+```
+
+### Print this subset using `knitr::kable()`
+
+```{r}
+knitr::kable(head(cmc))
 ```
 
 ### Summarize the dataset
 
+**NOTICE** that Wife's Age and Number of Children are now the only "numeric" "integer" variables - these are the only ones for which we get summary statistics. All the remaining variables are "factors" so we only get the frequencies for each category.
+
 ```{r}
 summary(cmc)
+```
+
+### Computing stats on factors
+
+Suppose you wanted to know the mean education level of the Huband's in this dataset. We can use the `as.numeric()` function to convert the variable and then run a `mean()` on it. We'll do more on facotrs later this semester.
+
+```{r}
+mean(as.numeric(cmc$HusbEd))
 ```
 
 
